@@ -1,0 +1,1 @@
+ALTER TABLE public.student_profiles ADD COLUMN IF NOT EXISTS study_level text NOT NULL DEFAULT '';

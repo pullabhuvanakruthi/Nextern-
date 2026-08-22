@@ -1,0 +1,144 @@
+//#region node_modules/.nitro/vite/services/ssr/assets/options-Br7fzcJ6.js
+var STUDY_LEVELS = ["Undergraduate", "Postgraduate"];
+var DEGREES = [
+	"B.Tech / B.E.",
+	"B.Sc.",
+	"BCA",
+	"MCA",
+	"M.Tech / M.E.",
+	"MBA",
+	"M.Sc.",
+	"B.Com",
+	"M.Com",
+	"BA",
+	"MA",
+	"Diploma",
+	"PhD",
+	"Other"
+];
+var CURRENT_YEARS = [
+	"1st year",
+	"2nd year",
+	"3rd year",
+	"4th year",
+	"5th year",
+	"Graduated"
+];
+var GRADUATION_YEARS = [
+	"2026",
+	"2027",
+	"2028",
+	"2029",
+	"2030",
+	"2031"
+];
+var SKILL_OPTIONS = [
+	"Python",
+	"Java",
+	"C++",
+	"JavaScript",
+	"TypeScript",
+	"React",
+	"HTML/CSS",
+	"SQL",
+	"Machine Learning",
+	"Artificial Intelligence",
+	"Data Science",
+	"Cloud Computing",
+	"Cybersecurity",
+	"IoT",
+	"Robotics",
+	"UI/UX",
+	"Digital Marketing",
+	"Communication",
+	"Leadership",
+	"Git",
+	"Linux",
+	"Statistics",
+	"Excel",
+	"Power BI",
+	"Pandas",
+	"PyTorch",
+	"Go",
+	"Kubernetes",
+	"Networking",
+	"Figma"
+];
+var INTEREST_OPTIONS = [
+	"AI/ML",
+	"Software Development",
+	"Data Science",
+	"Web Development",
+	"App Development",
+	"Cybersecurity",
+	"Cloud",
+	"IoT",
+	"Robotics",
+	"Finance",
+	"Marketing",
+	"HR",
+	"Business",
+	"Design",
+	"Research"
+];
+var DOMAINS = [
+	"AI/ML",
+	"Software Development",
+	"Web Development",
+	"Data Science",
+	"Cybersecurity",
+	"Cloud",
+	"Product Design",
+	"Marketing",
+	"Finance",
+	"Business",
+	"Research"
+];
+var LOCATIONS = [
+	"Bengaluru, IN",
+	"Hyderabad, IN",
+	"Pune, IN",
+	"Chennai, IN",
+	"Mumbai, IN",
+	"Delhi NCR, IN",
+	"Gurugram, IN",
+	"Noida, IN",
+	"Remote"
+];
+var WORK_MODES = [
+	"Remote",
+	"Hybrid",
+	"Onsite"
+];
+var DURATIONS = [
+	"1-2 months",
+	"3 months",
+	"6 months",
+	"6+ months",
+	"Flexible"
+];
+var COMPANY_TYPES = [
+	"Startup",
+	"Product company",
+	"Service company",
+	"MNC",
+	"Research lab",
+	"Non-profit",
+	"No preference"
+];
+var APP_STATUSES = [
+	"saved",
+	"applied",
+	"interview",
+	"selected",
+	"rejected"
+];
+var STATUS_LABEL = {
+	saved: "Saved",
+	applied: "Applied",
+	interview: "Interview",
+	selected: "Selected",
+	rejected: "Rejected"
+};
+//#endregion
+export { DOMAINS as a, INTEREST_OPTIONS as c, STATUS_LABEL as d, STUDY_LEVELS as f, DEGREES as i, LOCATIONS as l, COMPANY_TYPES as n, DURATIONS as o, WORK_MODES as p, CURRENT_YEARS as r, GRADUATION_YEARS as s, APP_STATUSES as t, SKILL_OPTIONS as u };
