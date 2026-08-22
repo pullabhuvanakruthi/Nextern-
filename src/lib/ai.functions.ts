@@ -290,9 +290,42 @@ export const assistantReply = createServerFn({ method: "POST" })
       console.warn("Chatbot generation failed, falling back to local assistant response:", e?.message);
       
       const lower = message.toLowerCase();
-      if (lower.includes("ats") || lower.includes("resume")) {
+      
+      if (lower.includes("enhance") || lower.includes("improve") || lower.includes("critique") || lower.includes("review") || lower.includes("check")) {
+        if (!resume) {
+          reply = "I don't see a resume uploaded to your profile yet! 📂\n\n" +
+            "Please go to your **Profile** page, upload your resume PDF, and then ask me to 'enhance my resume'. I will analyze the text and suggest specific keywords and formatting changes to help you pass ATS screenings.";
+        } else {
+          const mySkills = profile?.skills || [];
+          const missingInResume = mySkills.filter(s => !resume.toLowerCase().includes(s.toLowerCase().trim()));
+          const hasMetrics = resume.includes("%") || /\b\d{2,}\b/.test(resume);
+          
+          reply = "I have reviewed your uploaded resume. Here are a few personalized suggestions to enhance it and pass ATS screenings:\n\n";
+          
+          if (missingInResume.length > 0) {
+            reply += `• **Add Missing Skills:** You listed **${missingInResume.slice(0, 3).join(", ")}** in your profile, but they are not mentioned in your resume. Insert these keywords in your experience or skills section so scanners don't filter you out.\n`;
+          } else {
+            reply += "• **Skills Alignment:** Great job! Your core profile skills are well-represented in your resume text.\n";
+          }
+          
+          if (!hasMetrics) {
+            reply += "• **Quantify Your Impact:** I noticed a lack of percentages or metrics in your descriptions. Enhance your bullets by adding results (e.g. 'reduced page load time by 15%' or 'improved query efficiency by 25%').\n";
+          } else {
+            reply += "• **Metric-Driven Bullets:** Good job including numbers to show the outcomes of your projects.\n";
+          }
+          
+          reply += "• **Formatting Check:** Keep your resume in a single-column layout, use standard fonts (Arial/Calibri), and avoid placing text inside graphic shapes or tables which confuse ATS parsers.\n\n" +
+            "You can replace your resume with these enhancements on your **Profile** page at any time!";
+        }
+      } else if (lower.startsWith("hi") || lower.startsWith("hello") || lower.startsWith("hey") || lower.includes("greetings")) {
+        reply = "Hello! I am your Nextern AI Assistant. 👋\n\nI am here to help you get internship-ready. How can I assist you today? Feel free to ask me:\n\n" +
+          "• *'Make my resume more ATS-friendly'*\n" +
+          "• *'Rewrite my project bullets with impact'*\n" +
+          "• *'How should I prepare for coding interviews?'*\n" +
+          "• *'What skills should I add for AI/ML or Web Dev roles?'*";
+      } else if (lower.includes("ats") || lower.includes("resume") || lower.includes("cv")) {
         reply = "Here are 3 key tips to make your resume more ATS-friendly:\n\n" +
-          "• **Use a single-column layout:** Multi-column tables often confuse parser tools.\n" +
+          "• **Use a single-column layout:** Multi-column tables or complex grids often confuse parser tools.\n" +
           "• **Add exact keyword matches:** Align your skills section with the specific words in the internship descriptions (e.g. if they list 'React Hooks', write 'React Hooks' instead of 'React').\n" +
           "• **Focus on impact bullets:** Use action verbs and metric metrics (e.g. 'Optimized database queries, reducing response latency by 20%').";
       } else if (lower.includes("bullet") || lower.includes("rewrite") || lower.includes("project")) {
@@ -300,12 +333,18 @@ export const assistantReply = createServerFn({ method: "POST" })
           "**Before:** 'Helped build a web app with React.'\n" +
           "**After:** 'Developed responsive frontend modules using React, improving user session durations by 15% across 200+ active users.'\n\n" +
           "Try to quantify your results with percentages, time saved, or database performance changes!";
-      } else if (lower.includes("skill") || lower.includes("ai") || lower.includes("ml")) {
-        reply = "For AI/ML Engineering roles, companies on Nextern are prioritizing:\n\n" +
-          "• **Core Frameworks:** PyTorch, TensorFlow, and Scikit-Learn.\n" +
-          "• **AI Development:** Vector Databases (Pinecone, PGVector) and Prompt Engineering.\n" +
-          "• **Development & Cloud:** Python, Docker, and basic MLOps pipelines (MLflow).\n\n" +
-          "You can practice and test these skills on our **Practice** panel!";
+      } else if (lower.includes("interview") || lower.includes("prep") || lower.includes("prepare") || lower.includes("question")) {
+        reply = "Here is a quick checklist to prepare for your upcoming technical interviews:\n\n" +
+          "• **Master Core DSA:** Practice standard problems in Arrays, Strings, Hashing, and Trees on our **Practice** page.\n" +
+          "• **Study Your Profile Projects:** Be ready to explain your architecture decisions, database choices, and how you solved challenging technical bugs.\n" +
+          "• **Prepare Your Introduction:** Write a brief 1-minute pitch introducing your background, skills, and why you are excited about the internship role.\n" +
+          "• **Use Mock Tests:** Generate a simulator test on your target topic using the **Practice** tab to build speed and accuracy.";
+      } else if (lower.includes("skill") || lower.includes("ai") || lower.includes("ml") || lower.includes("dev")) {
+        reply = "For top engineering and analyst roles, companies on Nextern are prioritizing:\n\n" +
+          "• **AI/ML:** PyTorch, Vector Databases (Pinecone/PGVector), and Prompt Engineering.\n" +
+          "• **Web Development:** TypeScript, Next.js / Remix, and PostgreSQL database logic.\n" +
+          "• **DevOps:** Docker containers, CI/CD pipelines, and AWS deployment basics.\n\n" +
+          "You can check out the **Skill Trends** selector on your dashboard for the full breakdown!";
       } else {
         reply = `Hello! I am the Nextern AI Assistant. I noticed you asked about: "${message}".\n\n` +
           "Currently, I am running in **offline demo mode** due to an API connection issue on your account. To assist you with your career goals, here are some recommended actions:\n\n" +

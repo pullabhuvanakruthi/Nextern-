@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 import { InternshipCard } from "@/components/InternshipCard";
+import { MotivationBanner } from "@/components/MotivationBanner";
 import { Navbar } from "@/components/Navbar";
 import { SkillTrendDetector } from "@/components/SkillTrendDetector";
 import { Button } from "@/components/ui/button";
@@ -174,9 +175,11 @@ function Dashboard() {
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            {results.map((item) => (
-              <InternshipCard
+          <>
+            <MotivationBanner profile={profile} />
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              {results.map((item) => (
+                <InternshipCard
                 key={item.internship.id}
                 item={item}
                 saved={savedIds.includes(item.internship.id)}
@@ -195,6 +198,7 @@ function Dashboard() {
               />
             ))}
           </div>
+          </>
         )}
 
         {!isLoading && results.length === 0 && (

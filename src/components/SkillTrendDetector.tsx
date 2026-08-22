@@ -12,7 +12,9 @@ import {
   AlertCircle,
   HelpCircle,
   TrendingUp as TrendUpIcon,
-  Info
+  Info,
+  ChevronRight,
+  Compass
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,13 +27,93 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useStudentProfile, useInternships } from "@/lib/queries";
 import { scoreInternship } from "@/lib/matching";
 import { SKILL_TRENDS, CAREER_ROLES, SKILL_CATEGORIES } from "@/data/skillTrends";
 
+interface RoadmapStep {
+  title: string;
+  description: string;
+  duration: string;
+}
+
+export function getRoadmapForSkill(skillName: string): RoadmapStep[] {
+  const norm = skillName.toLowerCase().trim();
+  
+  if (norm.includes("docker") || norm.includes("container")) {
+    return [
+      { title: "Container Basics", description: "Install Docker, understand images vs containers, and run standard pre-built images from Docker Hub.", duration: "Week 1" },
+      { title: "Custom Images & Dockerfiles", description: "Learn to write custom Dockerfiles, optimize caching layers, and use multi-stage builds to minimize image sizes.", duration: "Week 2" },
+      { title: "Multi-Container Orchestration", description: "Master Docker Compose to wire up multiple containers with custom internal networks and persistent storage volumes.", duration: "Week 3" },
+      { title: "Cloud Deployments & Kubernetes", description: "Deploy containerized projects to cloud hosts (AWS ECS/App Runner) and learn basics of Kubernetes clusters.", duration: "Week 4" }
+    ];
+  }
+  
+  if (norm.includes("ai") || norm.includes("llm") || norm.includes("prompt") || norm.includes("rag")) {
+    return [
+      { title: "LLM APIs & Integration", description: "Learn to fetch content from Google AI Studio / OpenAI APIs, manage system instructions, and handle chat memory.", duration: "Week 1" },
+      { title: "Advanced Prompt Design", description: "Master few-shot prompting, chain-of-thought, and output constraint formatting (e.g. forcing structured JSON output).", duration: "Week 2" },
+      { title: "Retrieval-Augmented Generation (RAG)", description: "Generate text embeddings, store them in vector databases (Pinecone/PGVector), and fetch context to augment prompt requests.", duration: "Week 3" },
+      { title: "Agentic Workflows & Tool Use", description: "Build agents that can call external APIs, query databases, and execute custom local functions based on user requests.", duration: "Week 4" }
+    ];
+  }
+
+  if (norm.includes("react") || norm.includes("next.js") || norm.includes("typescript") || norm.includes("web") || norm.includes("developer")) {
+    return [
+      { title: "Modern JavaScript & TypeScript", description: "Learn ES6+ features, static typing basics, interface declarations, and asynchronous programming with async/await.", duration: "Week 1" },
+      { title: "React Component Lifecycle & Hooks", description: "Master local state management (useState), side-effects (useEffect), and custom hook abstractions.", duration: "Week 2" },
+      { title: "Next.js App Router & SSR", description: "Understand Server-Side Rendering (SSR) vs Static Site Generation (SSG), layouts routing, and Server Actions.", duration: "Week 3" },
+      { title: "Data Fetching & State Caching", description: "Use TanStack Query (React Query) to fetch, cache, update, and invalidate server data inside component trees.", duration: "Week 4" }
+    ];
+  }
+
+  if (norm.includes("sql") || norm.includes("database") || norm.includes("postgres")) {
+    return [
+      { title: "Relational Database Design", description: "Learn normalization rules, primary/foreign key constraints, and model entity-relationship schemas.", duration: "Week 1" },
+      { title: "Complex Querying & Joins", description: "Master INNER/LEFT Joins, GROUP BY aggregations, Subqueries, and Common Table Expressions (CTEs).", duration: "Week 2" },
+      { title: "Index Optimization & Performance", description: "Understand B-Trees, create column indexes, and analyze queries using EXPLAIN plans to reduce response latency.", duration: "Week 3" },
+      { title: "Transactions & ACID Safety", description: "Manage database transactions, learn isolation levels, and ensure reliability using rollback/commit checkpoints.", duration: "Week 4" }
+    ];
+  }
+
+  // Generic fallback roadmap
+  return [
+    { 
+      title: "Core Fundamentals", 
+      description: `Understand the core definitions, history, and syntax of ${skillName}. Set up your local development environment.`, 
+      duration: "Week 1" 
+    },
+    { 
+      title: "Practical Integrations", 
+      description: `Build 2-3 small projects incorporating ${skillName} in isolation to cement your coding muscles.`, 
+      duration: "Week 2" 
+    },
+    { 
+      title: "Advanced Optimization", 
+      description: `Learn edge cases, error handling, performance scaling patterns, and testing protocols for ${skillName}.`, 
+      duration: "Week 3" 
+    },
+    { 
+      title: "ATS Resume & Target Alignment", 
+      description: `Add projects to your GitHub portfolio, add the keyword to your profile, and build quantified resume bullets.`, 
+      duration: "Week 4" 
+    }
+  ];
+}
+
 export function SkillTrendDetector() {
   const { data: profile } = useStudentProfile();
   const { data: internships = [] } = useInternships();
+
+  // Dialog state for viewing roadmap
+  const [roadmapSkill, setRoadmapSkill] = useState<string | null>(null);
 
   // Deduce target role based on profile data
   const defaultRole = useMemo(() => {
@@ -174,6 +256,12 @@ export function SkillTrendDetector() {
       </svg>
     );
   };
+
+  // Get active roadmap steps
+  const activeRoadmapSteps = useMemo(() => {
+    if (!roadmapSkill) return [];
+    return getRoadmapForSkill(roadmapSkill);
+  }, [roadmapSkill]);
 
   return (
     <Card className="mt-8 shadow-[var(--shadow-card)]">
@@ -325,13 +413,16 @@ export function SkillTrendDetector() {
                     />
                   </div>
 
-                  {/* Learn Skill Action inside card if missing */}
+                  {/* Open Roadmap Dialog on click */}
                   {status !== "have" && (
                     <div className="mt-4 border-t border-border/50 pt-3 flex justify-end">
-                      <Button size="sm" variant="ghost" className="h-7 text-xs font-semibold px-2 py-0 text-primary hover:text-primary/80" asChild>
-                        <Link to="/prepare">
-                          Learn Skill <ArrowRight className="ml-1 size-3" />
-                        </Link>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 text-xs font-semibold px-2 py-0 text-primary hover:text-primary/80 gap-1"
+                        onClick={() => setRoadmapSkill(skill.name)}
+                      >
+                        Learn Skill <ArrowRight className="size-3" />
                       </Button>
                     </div>
                   )}
@@ -398,10 +489,13 @@ export function SkillTrendDetector() {
                         </div>
                       </div>
 
-                      <Button size="sm" variant="outline" className="mt-4 w-full h-8 text-xs font-semibold gap-1" asChild>
-                        <Link to="/prepare">
-                          View Learning Plan <ArrowRight className="size-3" />
-                        </Link>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="mt-4 w-full h-8 text-xs font-semibold gap-1"
+                        onClick={() => setRoadmapSkill(rec.name)}
+                      >
+                        View Learning Plan <ArrowRight className="size-3" />
                       </Button>
                     </div>
                   );
@@ -417,6 +511,59 @@ export function SkillTrendDetector() {
           <span>Trend period: Monthly (Demostrative prototype data based on current Nextern platform parameters)</span>
         </div>
       </CardContent>
+
+      {/* Roadmap Dialog Modal */}
+      <Dialog open={!!roadmapSkill} onOpenChange={(open) => !open && setRoadmapSkill(null)}>
+        <DialogContent className="max-w-[480px] rounded-2xl p-6">
+          <DialogHeader className="pb-3 border-b border-border">
+            <DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
+              <Compass className="size-5.5 text-primary animate-pulse" />
+              {roadmapSkill} Roadmap
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Follow this step-by-step curriculum to master the skill.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Timeline representation */}
+          <div className="py-5">
+            <div className="relative border-l border-primary/20 pl-6 ml-4 space-y-6">
+              {activeRoadmapSteps.map((step, idx) => (
+                <div key={idx} className="relative">
+                  {/* Circle Step Number */}
+                  <span className="absolute -left-[35px] top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground border-2 border-background shadow-sm">
+                    {idx + 1}
+                  </span>
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <h5 className="font-bold text-sm text-foreground">{step.title}</h5>
+                      <span className="text-[9px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded">
+                        {step.duration}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground leading-normal">
+                      {step.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Call-to-action button to navigate and trigger test */}
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <Button variant="ghost" size="sm" onClick={() => setRoadmapSkill(null)}>
+              Close
+            </Button>
+            <Button size="sm" className="gap-1.5" asChild onClick={() => setRoadmapSkill(null)}>
+              <Link to="/prepare" search={{ topic: roadmapSkill ?? "" }}>
+                Take Practice Test
+                <ChevronRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

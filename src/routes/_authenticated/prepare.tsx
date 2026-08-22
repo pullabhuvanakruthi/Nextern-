@@ -48,7 +48,13 @@ function PreparePage() {
   const grade = useGradeTest();
   const { data: attempts = [] } = useTestAttempts();
 
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("topic") || "";
+    }
+    return "";
+  });
   const [difficulty, setDifficulty] = useState("medium");
   const [test, setTest] = useState<{ id: string; questions: MockQuestion[] } | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);

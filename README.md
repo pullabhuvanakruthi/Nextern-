@@ -1,8 +1,7 @@
-# Welcome to your Lovable project
+
 
 This project was built with [Lovable](https://lovable.dev).
 
-## Build with Lovable
 
 Open your project in the [Lovable editor](https://lovable.dev) and keep building.
 

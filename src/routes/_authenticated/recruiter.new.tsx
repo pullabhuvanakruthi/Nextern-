@@ -71,27 +71,63 @@ function NewPosting() {
     }
     setBusy(true);
     try {
-      const { error } = await supabase.from("internships").insert({
-        posted_by: user!.id,
-        company_id: company?.id ?? null,
-        company_name: companyName,
-        title: form.title,
-        description: form.description,
-        domain: form.domain,
-        skills: form.skills,
-        eligibility: form.eligibility,
-        location: form.location || "Remote",
-        work_mode: form.work_mode,
-        duration: form.duration,
-        stipend: form.stipend ? Number(form.stipend) : null,
-        deadline: form.deadline || null,
-        source: "Nextern",
-        apply_url: form.apply_url,
-        is_curated: false,
-        is_published: true,
-      });
-      if (error) throw error;
-      toast.success("Internship published");
+      const { data: newInternship, error: insertError } = await supabase
+        .from("internships")
+        .insert({
+          posted_by: user!.id,
+          company_id: company?.id ?? null,
+          company_name: companyName,
+          title: form.title,
+          description: form.description,
+          domain: form.domain,
+          skills: form.skills,
+          eligibility: form.eligibility,
+          location: form.location || "Remote",
+          work_mode: form.work_mode,
+          duration: form.duration,
+          stipend: form.stipend ? Number(form.stipend) : null,
+          deadline: form.deadline || null,
+          source: "Nextern",
+          apply_url: form.apply_url,
+          is_curated: false,
+          is_published: true,
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Notify matching students
+      try {
+        const { data: students } = await supabase
+          .from("student_profiles")
+          .select("user_id, preferred_domains")
+          .eq("onboarding_complete", true);
+
+        if (students && students.length > 0) {
+          const matches = students.filter(s => 
+            (s.preferred_domains || []).some(d => d.toLowerCase() === form.domain.toLowerCase())
+          );
+          const targetStudents = matches.length > 0 ? matches : students;
+
+          const notificationsPayload = targetStudents.map(student => ({
+            user_id: student.user_id,
+            title: "New Internship Match",
+            message: `A new ${form.domain} internship "${form.title}" at "${companyName}" matches your profile!`,
+            type: "new_internship",
+            link: "/dashboard"
+          }));
+
+          if (notificationsPayload.length > 0) {
+            await supabase.from("notifications").insert(notificationsPayload);
+          }
+          console.log(`[Email Dispatch Simulation] Sent new internship email alerts to ${targetStudents.length} students matching domain ${form.domain}.`);
+        }
+      } catch (notifyErr) {
+        console.warn("Failed to dispatch new internship notifications:", notifyErr);
+      }
+
+      toast.success("Internship published & matching students notified!");
       navigate({ to: "/recruiter" });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not publish");

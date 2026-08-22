@@ -1,7 +1,7 @@
 import { o as require_jsx_runtime } from "../_libs/@radix-ui/react-collection+[...].mjs";
 import { n as cn } from "./button-BpE9Czok.mjs";
 import { t as daysUntil } from "./matching-Ba8zFjsF.mjs";
-import { F as CalendarClock } from "../_libs/lucide-react.mjs";
+import { V as CalendarClock } from "../_libs/lucide-react.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/DeadlineBadge-DqATqPlp.js
 var import_jsx_runtime = require_jsx_runtime();
 function DeadlineBadge({ deadline, className }) {

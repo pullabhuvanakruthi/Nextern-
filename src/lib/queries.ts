@@ -171,6 +171,20 @@ export function useSetApplicationStatus() {
       internshipId: string;
       status: Application["status"];
     }) => {
+      // Fetch internship details to find the recruiter
+      const { data: internship } = await supabase
+        .from("internships")
+        .select("title, posted_by")
+        .eq("id", internshipId)
+        .single();
+
+      // Fetch student's name
+      const { data: profile } = await supabase
+        .from("student_profiles")
+        .select("full_name")
+        .eq("user_id", user!.id)
+        .single();
+
       const { error } = await supabase
         .from("applications")
         .upsert(
@@ -178,6 +192,21 @@ export function useSetApplicationStatus() {
           { onConflict: "user_id,internship_id" },
         );
       if (error) throw error;
+
+      // If status is applied, notify recruiter
+      if (status === "applied" && internship?.posted_by) {
+        const studentName = profile?.full_name || "A student";
+        await supabase.from("notifications").insert([
+          {
+            user_id: internship.posted_by,
+            title: "New Application Received",
+            message: `${studentName} has applied for your internship "${internship.title}".`,
+            type: "application_received",
+            link: `/recruiter/${internshipId}`
+          }
+        ]);
+        console.log(`[Email Dispatch Simulation] Sent email notification to recruiter (${internship.posted_by}) about new application from ${studentName}.`);
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["applications", user?.id] }),
   });
@@ -278,6 +307,8 @@ export type Candidate = {
   interests: string[];
   has_resume: boolean;
   application_status: string | null;
+  email?: string | null;
+  resume_path?: string | null;
 };
 
 export function useCandidates(internshipId: string) {
@@ -291,5 +322,132 @@ export function useCandidates(internshipId: string) {
       if (error) throw error;
       return (data ?? []) as Candidate[];
     },
+  });
+}
+
+export function useUpdateApplicationByRecruiter(internshipId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      candidateId,
+      status,
+      notes,
+    }: {
+      candidateId: string;
+      status: string;
+      notes?: string | null;
+    }) => {
+      // Fetch internship details to name the notification
+      const { data: internship } = await supabase
+        .from("internships")
+        .select("title, company_name")
+        .eq("id", internshipId)
+        .single();
+
+      const updates: any = { status };
+      if (notes !== undefined) {
+        updates.notes = notes;
+      }
+      const { error } = await supabase
+        .from("applications")
+        .update(updates)
+        .eq("user_id", candidateId)
+        .eq("internship_id", internshipId);
+      if (error) throw error;
+
+      // Notify student
+      let msg = `Your application for "${internship?.title}" at "${internship?.company_name}" has been updated to "${status}".`;
+      if (notes) {
+        msg += ` Message from recruiter: "${notes}"`;
+      }
+      
+      await supabase.from("notifications").insert([
+        {
+          user_id: candidateId,
+          title: "Application Update",
+          message: msg,
+          type: "application_update",
+          link: "/applications"
+        }
+      ]);
+      console.log(`[Email Dispatch Simulation] Sent application update email alert to student (${candidateId}) with status: ${status}.`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["candidates", internshipId] }),
+  });
+}
+
+export type SystemNotification = {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  read: boolean;
+  type: string | null;
+  link: string | null;
+  created_at: string;
+};
+
+export function useNotifications() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["notifications", user?.id],
+    enabled: !!user,
+    queryFn: async (): Promise<SystemNotification[]> => {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as SystemNotification[];
+    },
+  });
+}
+
+export function useMarkNotificationRead() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", user?.id] }),
+  });
+}
+
+export function useCreateNotification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      user_id: string;
+      title: string;
+      message: string;
+      type: string;
+      link: string;
+    }) => {
+      const { error } = await supabase
+        .from("notifications")
+        .insert([payload]);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => qc.invalidateQueries({ queryKey: ["notifications", variables.user_id] }),
+  });
+}
+
+export function useClearNotifications() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("user_id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications", user?.id] }),
   });
 }

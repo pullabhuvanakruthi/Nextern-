@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, Menu } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/Logo";
+import { NotificationBell } from "@/components/NotificationBell";
 import { ReminderBell } from "@/components/ReminderBell";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -53,6 +54,7 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          {user && <NotificationBell />}
           {user && role !== "recruiter" && <ReminderBell />}
           {user ? (
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
@@ -71,9 +73,10 @@ export function Navbar() {
         </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
-          {user && role !== "recruiter" && (
-            <div className="md:hidden">
-              <ReminderBell />
+          {user && (
+            <div className="md:hidden flex items-center gap-1.5 mr-2">
+              <NotificationBell />
+              {role !== "recruiter" && <ReminderBell />}
             </div>
           )}
           <SheetTrigger asChild className="md:hidden">
